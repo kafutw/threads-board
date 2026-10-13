@@ -118,6 +118,11 @@ body.dragging .cell:empty{border-color:var(--muted)}
 .chip.done .t{color:var(--muted)}
 .chip.late .st{color:var(--bad)}
 .chip.late::after{content:"";position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:50%;background:var(--bad)}
+.chip.flash{box-shadow:0 0 0 2.5px var(--warn);animation:flash 1.2s ease-in-out 4}
+.chip.flash .st::before{content:'剛剛有人改過・';color:var(--warn);font-weight:800}
+@keyframes flash{0%,100%{box-shadow:0 0 0 2.5px var(--warn)}50%{box-shadow:0 0 0 4px var(--warn),0 0 18px var(--warn)}}
+.sync{font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
+.sync.ok{color:var(--ok)}.sync.busy{color:var(--warn)}.sync.bad{color:var(--bad)}
 .chip .warn{position:absolute;top:-7px;right:-5px;height:18px;padding:0 6px;border-radius:999px;background:var(--warn);color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center}
 .pchip,.chip.mv{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 #cal,.pool,.top,.now{-webkit-user-select:none;user-select:none}
@@ -245,6 +250,7 @@ body.chipdrag .backhint{display:grid}
   <header class="top">
     <a class="brand" href="https://www.threads.com/@yilan_kafka" target="_blank" rel="noopener"><span class="tile"><svg class="tlogo" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.964-.065-1.19.408-2.285 1.33-3.082.88-.76 2.119-1.207 3.583-1.291a13.853 13.853 0 0 1 3.02.142c-.126-.742-.375-1.332-.75-1.757-.513-.586-1.308-.883-2.359-.89h-.029c-.844 0-1.992.232-2.721 1.32L7.734 7.847c.98-1.454 2.568-2.256 4.478-2.256h.044c3.194.02 5.097 1.975 5.287 5.388.108.046.216.094.321.142 1.49.7 2.58 1.761 3.154 3.07.797 1.82.871 4.79-1.548 7.158-1.85 1.81-4.094 2.628-7.277 2.65Zm1.003-11.69c-.242 0-.487.007-.739.021-1.836.103-2.98.946-2.916 2.143.067 1.256 1.452 1.839 2.784 1.767 1.224-.065 2.818-.543 3.086-3.71a10.5 10.5 0 0 0-2.215-.221z"/></svg></span><span class="nm"><small>Threads · @yilan_kafka</small><b>排程台</b></span></a>
     <span class="spacer"></span>
+    <span class="sync" id="sync"></span>
     <button class="gear" data-act="settings" aria-label="發文時段設定">⚙</button>
   </header>
   <div class="now" id="bar"><span class="status" id="status"><span class="dot"></span><span>讀取中</span></span></div>
@@ -299,7 +305,7 @@ const WHO={kafka:{n:'卡夫卡',a:'卡'},xz:{n:'小臻',a:'臻'},'':{n:'未定',
 const WD='日一二三四五六';
 const TL='<svg class="tlogo" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.964-.065-1.19.408-2.285 1.33-3.082.88-.76 2.119-1.207 3.583-1.291a13.853 13.853 0 0 1 3.02.142c-.126-.742-.375-1.332-.75-1.757-.513-.586-1.308-.883-2.359-.89h-.029c-.844 0-1.992.232-2.721 1.32L7.734 7.847c.98-1.454 2.568-2.256 4.478-2.256h.044c3.194.02 5.097 1.975 5.287 5.388.108.046.216.094.321.142 1.49.7 2.58 1.761 3.154 3.07.797 1.82.871 4.79-1.548 7.158-1.85 1.81-4.094 2.628-7.277 2.65Zm1.003-11.69c-.242 0-.487.007-.739.021-1.836.103-2.98.946-2.916 2.143.067 1.256 1.452 1.839 2.784 1.767 1.224-.065 2.818-.543 3.086-3.71a10.5 10.5 0 0 0-2.215-.221z"/></svg>';
 const DEF={slots:['12:00','20:30'],gapH:3};
-const S={db:null,ro:false,loaded:false,posts:[],drive:[],acts:[],actLoaded:false,synced:0,settings:{...DEF},me:'kafka',uid:null,
+const S={db:null,ro:false,loaded:false,posts:[],drive:[],acts:[],actLoaded:false,pendingLog:[],flash:{},synced:0,settings:{...DEF},me:'kafka',uid:null,
   wk:0,filter:'kit',q:'',pick:null,sheet:null,armDel:false,dragging:false,pending:false,sorts:[]};
 const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
 
@@ -322,57 +328,72 @@ function addLog(p,a){return [...(p.log||[]),stamp(a)].slice(-12)}
 const nm=p=>p?(p.name||short(p.title)):'';
 /* ---------- 資料：私人 repo kafutw/threads-board-data ---------- */
 const REPO='kafutw/threads-board-data', API='https://api.github.com/repos/'+REPO+'/contents/';
-const DEFS={posts:{posts:{}},activity:{items:[]},pool:{items:[]},settings:{slots:['12:00','20:30'],gapH:3}};
-const G={tok:ls.get('tb-tok'),etag:{},sha:{},data:{},old:{},q:{},busy:0,quiet:0};
+const DEFS={posts:{posts:{},log:[]},pool:{items:[]},settings:{slots:['12:00','20:30'],gapH:3}};
+const G={tok:ls.get('tb-tok'),sha:{},data:{},q:{},busy:0,head:null,seen:new Set(),lastOk:0,err:''};
 const b64d=s=>new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\n/g,'')),c=>c.charCodeAt(0)));
 const b64e=str=>{const u=new TextEncoder().encode(str);let b='';for(let i=0;i<u.length;i+=0x8000)b+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(b)};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function hdr(extra){return {Authorization:'Bearer '+G.tok,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28',...(extra||{})}}
-// GitHub 剛寫完的幾秒內，讀到的可能還是舊版本：記住已經被取代的版本號，讀到就丟掉
-function markOld(name,sha){ if(sha) (G.old[name]||(G.old[name]=new Set())).add(sha) }
-async function ghGet(name,fresh){
-  const r=await fetch(API+name+'.json?ref=main'+(fresh?'&_='+Date.now():''),{headers:hdr(!fresh&&G.etag[name]?{'If-None-Match':G.etag[name]}:{}),cache:'no-store'});
-  if(r.status===304) return null;
+// 先問 GitHub「最新一次存檔是哪一版」，再讀那一版的檔案：固定版本的檔案不會讀到舊的
+async function headSha(){
+  const r=await fetch('https://api.github.com/repos/'+REPO+'/git/ref/heads/main?_='+Date.now(),{headers:hdr(),cache:'no-store'});
+  if(!r.ok) throw {code:r.status};
+  return (await r.json()).object.sha;
+}
+async function getAt(name,commit){
+  const r=await fetch(API+name+'.json?ref='+commit,{headers:hdr(),cache:'no-store'});
   if(r.status===404) return {data:structuredClone(DEFS[name]),sha:null};
   if(!r.ok) throw {code:r.status};
-  const j=await r.json();
-  if(G.old[name]&&G.old[name].has(j.sha)) return {stale:true};
-  if(!fresh) G.etag[name]=r.headers.get('ETag');
-  const data=JSON.parse(b64d(j.content)); G.sha[name]=j.sha; G.data[name]=data;
-  return {data,sha:j.sha};
+  const j=await r.json(); return {data:JSON.parse(b64d(j.content)),sha:j.sha};
 }
 const WHO_N=()=>WHO[S.me].n;
-// 同一個檔案的寫入排隊一個一個來；先用自己手上最新的版本寫，撞到別人才重讀
+const NOOP=d=>d;
+// 同一個檔案的寫入排隊；排程跟異動紀錄存在同一個檔、同一次存檔，不會一個存到一個沒存到
 function ghTx(name,fn,msg){ const run=()=>ghTxRun(name,fn,msg); const p=(G.q[name]||Promise.resolve()).then(run,run); G.q[name]=p.catch(()=>{}); return p }
 async function ghTxRun(name,fn,msg){
   if(S.ro) throw {code:403};
-  G.busy++;
+  G.busy++; syncBadge();
   try{
-    let base=(name in G.data)?{data:structuredClone(G.data[name]),sha:G.sha[name]}:null;
-    for(let i=0;i<8;i++){
-      if(!base){ const g=await ghGet(name,true); if(!g||g.stale){ await sleep(500*(i+1)); continue } base={data:structuredClone(g.data),sha:g.sha} }
+    let base=(name in G.data)?{data:structuredClone(G.data[name]),sha:G.sha[name]}:null, tried=null;
+    for(let i=0;i<10;i++){
+      if(!base){
+        if(i>0) await sleep(Math.min(5000,600*i));
+        const h=await headSha();
+        if(G.seen.has(h)&&i<9) continue;          // GitHub 還回舊版，等一下再問
+        const g=await getAt(name,h); base={data:structuredClone(g.data),sha:g.sha}; tried=h;
+      }
+      const logs=name==='posts'?S.pendingLog.slice():[];
+      if(name==='posts'&&fn===NOOP&&!logs.length) return base.data;
       const next=fn(base.data)||base.data;
+      if(name==='posts') next.log=[...logs,...(next.log||[])].slice(0,300);
       const r=await fetch(API+name+'.json',{method:'PUT',headers:hdr({'Content-Type':'application/json'}),
         body:JSON.stringify({message:WHO_N()+'：'+msg,content:b64e(JSON.stringify(next,null,1)),branch:'main',...(base.sha?{sha:base.sha}:{})})});
-      if(r.ok){ const j=await r.json(); markOld(name,base.sha); G.sha[name]=j.content.sha; G.data[name]=next; G.etag[name]=null; G.quiet=Date.now()+6000; applyData(name,next); return next }
-      if(r.status===409||r.status===422){ markOld(name,base.sha); base=null; await sleep(400*(i+1)+Math.random()*400); continue }
+      if(r.ok){
+        const j=await r.json();
+        if(G.head) G.seen.add(G.head); if(tried) G.seen.add(tried);
+        G.head=j.commit.sha; G.seen.delete(G.head); G.sha[name]=j.content.sha; G.data[name]=next; G.lastOk=Date.now(); G.err='';
+        if(logs.length) S.pendingLog=S.pendingLog.filter(x=>!logs.includes(x));
+        applyData(name,next); render(); return next;
+      }
+      if(r.status===409||r.status===422){ base=null; continue }
       if(r.status===401) throw {code:401};
       if(r.status===403||r.status===404){ S.ro=true; render(true) }
       throw {code:r.status};
     }
     throw {code:'conflict'};
-  } finally { G.busy-- }
+  } finally { G.busy--; syncBadge() }
 }
 function applyData(name,d){
   if(!d) return;
-  if(name==='posts'){ S.posts=Object.entries(d.posts||{}).map(([id,v])=>({id,...v})); S.loaded=true; }
+  if(name==='posts'){ S.posts=Object.entries(d.posts||{}).map(([id,v])=>({id,...v})); S.loaded=true; S.acts=[...S.pendingLog,...(d.log||[])].slice(0,60); S.actLoaded=true; }
   if(name==='pool'){ S.drive=d.items||[]; S.synced=d.syncedAt||0; }
-  if(name==='activity'){ S.acts=(d.items||[]).slice(0,60); S.actLoaded=true; }
   if(name==='settings'){ S.settings={...DEF,...d}; }
 }
 const newId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
-async function logAct(a,o){ try{ await ghTx('activity',d=>{d.items=[{a,by:S.me,t:Date.now(),...o},...(d.items||[])].slice(0,300);return d},'異動紀錄 '+a) }catch(e){} }
-let tT;function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(tT);tT=setTimeout(()=>t.hidden=true,2400)}
+// 異動紀錄先記在手上，跟著下一次存排程一起存；沒有排程要存的（例如改時段）就單獨存一次
+function logAct(a,o){ const e={a,by:S.me,t:Date.now(),...o}; S.pendingLog.unshift(e); S.acts=[e,...S.acts].slice(0,60); renderActivity();
+  clearTimeout(G.flushT); G.flushT=setTimeout(()=>{ if(S.pendingLog.length) ghTx('posts',NOOP,'異動紀錄').catch(()=>{}) },1500) }
+let tT;function toast(m,ms){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(tT);tT=setTimeout(()=>t.hidden=true,ms||2400)}
 
 /* ---------- 畫面 ---------- */
 function canRender(){ if(S.dragging) return false; const a=document.activeElement; return !(a&&/INPUT/.test(a.tagName)&&a.closest('.sheet')); }
@@ -438,7 +459,7 @@ function renderActivity(){
 function weekStart(){return addD(sod(Date.now()),S.wk*7)}
 function chipHtml(p){
   const now=Date.now(), done=p.status==='posted', late=!done&&p.at<now;
-  const cls=['chip',p.who||'none',done?'done':'mv',late?'late':''].join(' ');
+  const cls=['chip',p.who||'none',done?'done':'mv',late?'late':'',(S.flash[p.id]||0)>now?'flash':''].join(' ');
   const by=p.who||'';
   const av=done?`<span class="av th">${TL}</span>`:`<span class="av ${by||'none'}">${WHO[by].a}</span>`;
   return `<button class="${cls}" data-act="open" data-id="${esc(p.id)}" title="${esc(p.title)}">${av}<span class="body"><span class="t">${esc(p.name||short(p.title))}</span>${(st=>st?`<span class="st num">${late?'該發了 · ':''}${WHO[st.by||''].n}${st.a==='放'?'':' '+(ACT[st.a]||st.a)} ${md(st.t)} ${hm(st.t)}</span>`:'')(lastStamp(p))}</span>${p._close?'<span class="warn" title="跟前一則太近">!</span>':''}</button>`;
@@ -520,7 +541,8 @@ function localPost(id,fn){ const p=S.posts.find(x=>x.id===id); if(p){fn(p);rende
 async function patch(id,d){ localPost(id,p=>Object.assign(p,d)); try{await ghTx('posts',x=>{ if(x.posts[id]) Object.assign(x.posts[id],d,{updatedAt:Date.now(),by:S.me}); return x },'更新 '+nm(S.posts.find(p=>p.id===id)))}catch(e){fail(e)}}
 function newPost(d){return {kind:'article',aid:null,title:'',url:'',who:S.me,status:'planned',at:null,postedAt:null,link:'',log:[stamp('放')],...d,createdAt:Date.now(),updatedAt:Date.now(),by:S.me}}
 function backToPool(q){ if(!q) return; S.posts=S.posts.filter(x=>x.id!==q.id); render(true);
-  ghTx('posts',x=>{delete x.posts[q.id];return x},'放回素材池 '+nm(q)).then(()=>{toast('放回素材池了');logAct('回',{name:nm(q),from:q.at})}).catch(fail) }
+  logAct('回',{name:nm(q),from:q.at});
+  ghTx('posts',x=>{delete x.posts[q.id];return x},'放回素材池 '+nm(q)).then(()=>toast('放回素材池了')).catch(fail) }
 function artData(key){const a=poolItem(key);return a?{kind:'article',kit:a.key,name:a.name,aid:a.aid||null,title:a.t||a.name,url:a.u||''}:null}
 
 // 放進某個時段；那格有人就把後面的依序往後推一格（已發的不動、跳過）
@@ -642,7 +664,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ if(S.pick){S.pick
   if(e.key==='Enter'&&e.target.id==='ideaIn') $('[data-act="ideaOk"]').click(); });
 function usePick(t){ const pk=S.pick; S.pick=null; if(pk.key){const d=artData(pk.key); if(d) placeAt(t,null,d)} else if(pk.id) placeAt(t,pk.id); render(true) }
 function saveLink(){ const el=$('#linkIn'); if(!el||!S.sheet) return; const p=S.posts.find(x=>x.id===S.sheet); const v=el.value.trim();
-  if(p&&v!==(p.link||'')){ if(v&&!/^https?:\/\//.test(v)) return toast('連結要是網址'); patch(p.id,{link:v}); logAct(v?'連結':'刪連結',{name:nm(p)}) } }
+  if(p&&v!==(p.link||'')){ if(v&&!/^https?:\/\//.test(v)) return toast('連結要是網址'); logAct(v?'連結':'刪連結',{name:nm(p)}); patch(p.id,{link:v}) } }
 async function saveSettings(){
   if(S.ro) return;
   const slots=$('#setSlots').value.split(/[,，、\s]+/).filter(Boolean).map(s=>{const m=/^(\d{1,2})[:：](\d{2})$/.exec(s);return m&&+m[1]<24&&+m[2]<60?pad(+m[1])+':'+m[2]:null});
@@ -656,16 +678,36 @@ document.addEventListener('focusout',()=>setTimeout(()=>{if(S.pending)render()},
 render(true); setInterval(()=>render(),60000);
 async function refresh(force){
   if(!G.tok) return;
+  if(!force&&G.busy>0) return;
   try{
-    if(!force&&(G.busy>0||Date.now()<G.quiet)) return;   // 剛改完或正在存，先不要拿 GitHub 的舊版本蓋掉畫面
-    for(const n of ['posts','pool','settings','activity']){ const g=await ghGet(n,force); if(g&&!g.stale) applyData(n,g.data); }
-    S.netErr=''; S.loaded=true; S.actLoaded=true;
+    const h=await headSha();
+    if(!force&&(h===G.head||G.seen.has(h))){ G.lastOk=Date.now(); G.err=''; syncBadge(); return }
+    const [ps,pl,st]=await Promise.all([getAt('posts',h),getAt('pool',h),getAt('settings',h)]);
+    if(G.busy>0&&!force) return;
+    const before=new Map(S.posts.map(p=>[p.id,p])), seenT=S.acts.reduce((m,x)=>Math.max(m,x.t||0),0), first=!G.head;
+    G.data.posts=ps.data; G.sha.posts=ps.sha; G.data.pool=pl.data; G.sha.pool=pl.sha; G.data.settings=st.data; G.sha.settings=st.sha;
+    if(G.head&&G.head!==h) G.seen.add(G.head); G.head=h;
+    applyData('posts',ps.data); applyData('pool',pl.data); applyData('settings',st.data);
+    if(!first){
+      // 對方剛改的：卡片閃一下、上面跳通知
+      const now=Date.now();
+      S.posts.forEach(p=>{ const o=before.get(p.id); if(!o||o.at!==p.at||o.status!==p.status) S.flash[p.id]=now+30000 });
+      const fresh=(ps.data.log||[]).filter(x=>(x.t||0)>seenT&&x.by!==S.me);
+      if(fresh.length){ const d=document.createElement('div'); d.innerHTML=actText(fresh[0]); toast(WHO[fresh[0].by||''].n+' '+d.textContent+(fresh.length>1?'（還有 '+(fresh.length-1)+' 筆）':''),7000) }
+    }
+    S.netErr=''; G.err=''; G.lastOk=Date.now(); S.loaded=true;
   }catch(e){
     if(e&&e.code===401){ resetSetup('通行碼失效了，請重新貼一次'); return }
     if(e&&e.code===404){ S.netErr='讀不到排程資料，這組通行碼可能沒勾到 threads-board-data。'; }
-    else S.netErr='連不上 GitHub，稍後會自動再試。';
+    G.err='連不上 GitHub';
   }
-  render();
+  syncBadge(); render();
+}
+function syncBadge(){
+  const b=$('#sync'); if(!b) return;
+  if(G.err){ b.className='sync bad'; b.textContent='● 連不上，稍後重試'; return }
+  if(G.busy>0||S.pendingLog.length){ b.className='sync busy'; b.textContent='● 存檔中…'; return }
+  b.className='sync ok'; b.textContent=G.lastOk?'● 已同步 '+hm(G.lastOk):'● 連線中';
 }
 function resetSetup(msg){ G.tok=null; try{localStorage.removeItem('tb-tok')}catch(_){} showSetup(msg) }
 function showSetup(msg){ $('#setup').hidden=false; $('#setupErr').textContent=msg||''; ['kafka','xz'].forEach(k=>$('#sw-'+k).setAttribute('aria-pressed',S.me===k&&!!ls.get('tb-me'))) }
@@ -677,12 +719,13 @@ document.addEventListener('click',async e=>{
   if(!ls.get('tb-me')) return $('#setupErr').textContent='先選這台裝置是誰在用';
   if(!t) return $('#setupErr').textContent='請貼上通行碼';
   G.tok=t; $('#setupErr').textContent='確認中…';
-  try{ const g=await ghGet('posts',true); applyData('posts',g&&g.data); ls.set('tb-tok',t); $('#setup').hidden=true; $('#tokIn').value=''; refresh(true); }
+  try{ G.head=null; await headSha(); ls.set('tb-tok',t); $('#setup').hidden=true; $('#tokIn').value=''; refresh(true); }
   catch(err){ G.tok=null; $('#setupErr').textContent=err&&err.code===401?'通行碼不對，再檢查一次':err&&err.code===404?'這組通行碼沒有勾到 threads-board-data':'連不上 GitHub（'+(err&&err.code||'網路')+'）' }
 });
 if(ls.get('tb-me')) S.me=ls.get('tb-me');
 if(!G.tok||!ls.get('tb-me')) showSetup(''); else refresh(true);
-setInterval(()=>{ if(document.visibilityState==='visible'&&!S.dragging) refresh(false) },12000);
+setInterval(()=>{ if(document.visibilityState==='visible'&&!S.dragging) refresh(false) },8000);
+setInterval(syncBadge,20000);
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') refresh(false) });
 })();
 </script>
