@@ -257,7 +257,7 @@ body.chipdrag .backhint{display:grid}
     <span class="sync" id="sync"></span>
     <button class="gear" data-act="settings" aria-label="發文時段設定">⚙</button>
   </header>
-  <div class="now" id="bar"><span class="status" id="status"><span class="dot"></span><span>讀取中</span></span></div>
+  <div class="now" id="bar"></div>
   <div id="note"></div>
 
   <div class="layout">
@@ -416,17 +416,11 @@ function renderBar(){
   const now=Date.now(), gap=(+S.settings.gapH||0)*36e5;
   const done=S.posts.filter(p=>p.status==='posted').map(p=>({p,t:p.postedAt||p.at})).filter(x=>x.t).sort((a,b)=>b.t-a.t);
   const next=S.posts.filter(p=>p.status!=='posted'&&p.at!=null).sort((a,b)=>a.at-b.at)[0];
-  const st=$('#status');
-  const setSt=(c,t)=>{st.className='status '+c;st.innerHTML='<span class="dot"></span><span>'+esc(t)+'</span>'};
-  if(!S.loaded) setSt('','讀取中');
-  else if(done[0]&&now-done[0].t<gap) setSt('wait',hm(done[0].t+gap)+' 後再發');
-  else setSt('ok','現在可以發');
   const bar=$('#bar'); bar.querySelectorAll('.mini').forEach(e=>e.remove());
   const mk=(lab,p,t,by)=>{const s=document.createElement('span');s.className='mini';by=by||p.who||'';
     s.innerHTML=`<span class="av ${by||'none'}">${WHO[by].a}</span><span class="tx"><span class="lab">${lab}</span><span class="v num">${esc(rel(t)+' '+hm(t))}</span></span>`;
     s.title=p.title||'';return s};
   if(done[0]) bar.appendChild(mk('上一則',done[0].p,done[0].t,done[0].p.postedBy));
-  if(next) bar.appendChild(mk('下一則',next,next.at));
   // 最近一筆異動：誰、做了什麼、幾點；點一下跳到下面的異動紀錄
   const x=S.acts[0];
   if(x){ const by=x.by||''; const b=document.createElement('button'); b.type='button'; b.className='mini latest'+(now-x.t<10*6e4?' fresh':''); b.dataset.act='golog';
