@@ -120,6 +120,7 @@ body.dragging .cell:empty{border-color:var(--muted)}
 .chip.late::after{content:"";position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:50%;background:var(--bad)}
 .chip .warn{position:absolute;top:-7px;right:-5px;height:18px;padding:0 6px;border-radius:999px;background:var(--warn);color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center}
 .pchip,.chip.mv{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#cal,.pool,.top,.now{-webkit-user-select:none;user-select:none}
 .dragsrc{opacity:.25}
 .ghost{position:fixed;left:0;top:0;z-index:50;pointer-events:none;margin:0;transform-origin:30% 50%;box-shadow:0 18px 40px rgb(0 0 0/.28);background:var(--surface);border-radius:16px;opacity:.97}
 body.dragging,body.dragging *{cursor:grabbing!important}
@@ -322,34 +323,45 @@ const nm=p=>p?(p.name||short(p.title)):'';
 /* ---------- 資料：私人 repo kafutw/threads-board-data ---------- */
 const REPO='kafutw/threads-board-data', API='https://api.github.com/repos/'+REPO+'/contents/';
 const DEFS={posts:{posts:{}},activity:{items:[]},pool:{items:[]},settings:{slots:['12:00','20:30'],gapH:3}};
-const G={tok:ls.get('tb-tok'),etag:{},sha:{}};
+const G={tok:ls.get('tb-tok'),etag:{},sha:{},data:{},old:{},q:{},busy:0,quiet:0};
 const b64d=s=>new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\n/g,'')),c=>c.charCodeAt(0)));
 const b64e=str=>{const u=new TextEncoder().encode(str);let b='';for(let i=0;i<u.length;i+=0x8000)b+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(b)};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function hdr(extra){return {Authorization:'Bearer '+G.tok,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28',...(extra||{})}}
+// GitHub 剛寫完的幾秒內，讀到的可能還是舊版本：記住已經被取代的版本號，讀到就丟掉
+function markOld(name,sha){ if(sha) (G.old[name]||(G.old[name]=new Set())).add(sha) }
 async function ghGet(name,fresh){
-  const r=await fetch(API+name+'.json?ref=main',{headers:hdr(!fresh&&G.etag[name]?{'If-None-Match':G.etag[name]}:{}),cache:'no-store'});
+  const r=await fetch(API+name+'.json?ref=main'+(fresh?'&_='+Date.now():''),{headers:hdr(!fresh&&G.etag[name]?{'If-None-Match':G.etag[name]}:{}),cache:'no-store'});
   if(r.status===304) return null;
-  if(r.status===404){ G.sha[name]=null; return structuredClone(DEFS[name]); }
+  if(r.status===404) return {data:structuredClone(DEFS[name]),sha:null};
   if(!r.ok) throw {code:r.status};
-  G.etag[name]=r.headers.get('ETag'); const j=await r.json(); G.sha[name]=j.sha;
-  return JSON.parse(b64d(j.content));
+  const j=await r.json();
+  if(G.old[name]&&G.old[name].has(j.sha)) return {stale:true};
+  if(!fresh) G.etag[name]=r.headers.get('ETag');
+  const data=JSON.parse(b64d(j.content)); G.sha[name]=j.sha; G.data[name]=data;
+  return {data,sha:j.sha};
 }
 const WHO_N=()=>WHO[S.me].n;
-// 讀最新版 → 套用變更 → 寫回；兩個人同時改撞到就重讀再套一次
-async function ghTx(name,fn,msg){
+// 同一個檔案的寫入排隊一個一個來；先用自己手上最新的版本寫，撞到別人才重讀
+function ghTx(name,fn,msg){ const run=()=>ghTxRun(name,fn,msg); const p=(G.q[name]||Promise.resolve()).then(run,run); G.q[name]=p.catch(()=>{}); return p }
+async function ghTxRun(name,fn,msg){
   if(S.ro) throw {code:403};
-  for(let i=0;i<5;i++){
-    const cur=await ghGet(name,true);
-    const next=fn(cur)||cur;
-    const r=await fetch(API+name+'.json',{method:'PUT',headers:hdr({'Content-Type':'application/json'}),
-      body:JSON.stringify({message:WHO_N()+'：'+msg,content:b64e(JSON.stringify(next,null,1)),branch:'main',...(G.sha[name]?{sha:G.sha[name]}:{})})});
-    if(r.ok){ const j=await r.json(); G.sha[name]=j.content.sha; G.etag[name]=null; applyData(name,next); return next; }
-    if(r.status===409||r.status===422){ await sleep(250+Math.random()*700); continue; }
-    if(r.status===403||r.status===404){ S.ro=true; render(true); }
-    throw {code:r.status};
-  }
-  throw {code:'conflict'};
+  G.busy++;
+  try{
+    let base=(name in G.data)?{data:structuredClone(G.data[name]),sha:G.sha[name]}:null;
+    for(let i=0;i<8;i++){
+      if(!base){ const g=await ghGet(name,true); if(!g||g.stale){ await sleep(500*(i+1)); continue } base={data:structuredClone(g.data),sha:g.sha} }
+      const next=fn(base.data)||base.data;
+      const r=await fetch(API+name+'.json',{method:'PUT',headers:hdr({'Content-Type':'application/json'}),
+        body:JSON.stringify({message:WHO_N()+'：'+msg,content:b64e(JSON.stringify(next,null,1)),branch:'main',...(base.sha?{sha:base.sha}:{})})});
+      if(r.ok){ const j=await r.json(); markOld(name,base.sha); G.sha[name]=j.content.sha; G.data[name]=next; G.etag[name]=null; G.quiet=Date.now()+6000; applyData(name,next); return next }
+      if(r.status===409||r.status===422){ markOld(name,base.sha); base=null; await sleep(400*(i+1)+Math.random()*400); continue }
+      if(r.status===401) throw {code:401};
+      if(r.status===403||r.status===404){ S.ro=true; render(true) }
+      throw {code:r.status};
+    }
+    throw {code:'conflict'};
+  } finally { G.busy-- }
 }
 function applyData(name,d){
   if(!d) return;
@@ -543,6 +555,7 @@ const DR={src:null,active:false,timer:0,sx:0,sy:0,x:0,y:0,ox:0,oy:0,ghost:null,o
 document.addEventListener('pointerdown',e=>{
   if(S.ro||e.button>0||DR.active) return;
   const el=e.target.closest('.pchip,.chip.mv'); if(!el) return;
+  if(e.pointerType==='mouse') e.preventDefault();   // 不讓拖曳順便反白文字
   DR.src=el; DR.sx=DR.x=e.clientX; DR.sy=DR.y=e.clientY; DR.touch=e.pointerType!=='mouse';
   if(DR.touch){ clearTimeout(DR.timer); DR.timer=setTimeout(()=>{ if(DR.src) startDrag(); },200); }
 });
@@ -644,7 +657,8 @@ render(true); setInterval(()=>render(),60000);
 async function refresh(force){
   if(!G.tok) return;
   try{
-    for(const n of ['posts','pool','settings','activity']){ const d=await ghGet(n,force); if(d) applyData(n,d); }
+    if(!force&&(G.busy>0||Date.now()<G.quiet)) return;   // 剛改完或正在存，先不要拿 GitHub 的舊版本蓋掉畫面
+    for(const n of ['posts','pool','settings','activity']){ const g=await ghGet(n,force); if(g&&!g.stale) applyData(n,g.data); }
     S.netErr=''; S.loaded=true; S.actLoaded=true;
   }catch(e){
     if(e&&e.code===401){ resetSetup('通行碼失效了，請重新貼一次'); return }
@@ -663,7 +677,7 @@ document.addEventListener('click',async e=>{
   if(!ls.get('tb-me')) return $('#setupErr').textContent='先選這台裝置是誰在用';
   if(!t) return $('#setupErr').textContent='請貼上通行碼';
   G.tok=t; $('#setupErr').textContent='確認中…';
-  try{ const d=await ghGet('posts',true); applyData('posts',d); ls.set('tb-tok',t); $('#setup').hidden=true; $('#tokIn').value=''; refresh(true); }
+  try{ const g=await ghGet('posts',true); applyData('posts',g&&g.data); ls.set('tb-tok',t); $('#setup').hidden=true; $('#tokIn').value=''; refresh(true); }
   catch(err){ G.tok=null; $('#setupErr').textContent=err&&err.code===401?'通行碼不對，再檢查一次':err&&err.code===404?'這組通行碼沒有勾到 threads-board-data':'連不上 GitHub（'+(err&&err.code||'網路')+'）' }
 });
 if(ls.get('tb-me')) S.me=ls.get('tb-me');
