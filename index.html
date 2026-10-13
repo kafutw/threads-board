@@ -68,6 +68,10 @@ button{cursor:pointer}
 .mini .lab{font-size:12px;color:var(--muted);font-weight:600}
 .mini .v{font-weight:700;font-size:14px;white-space:nowrap}
 .mini .tx{display:grid;line-height:1.2;min-width:0}
+.mini.latest{flex:1 1 260px;border:0;text-align:left;cursor:pointer;font:inherit;color:var(--ink)}
+.mini.latest .v{overflow:hidden;text-overflow:ellipsis;font-size:13.5px}
+.mini.latest.fresh{box-shadow:0 0 0 2px var(--warn),var(--shadow)}
+.mini .new{font-style:normal;margin-left:6px;background:var(--warn);color:#fff;border-radius:999px;padding:0 6px;font-size:10.5px;font-weight:800}
 
 .av{width:30px;height:30px;border-radius:50%;display:inline-grid;place-items:center;font-size:13px;font-weight:700;flex:none;color:#fff;background:var(--none)}
 .av.kafka{background:var(--kafka)}.av.xz{background:var(--xz)}
@@ -423,6 +427,12 @@ function renderBar(){
     s.title=p.title||'';return s};
   if(done[0]) bar.appendChild(mk('上一則',done[0].p,done[0].t,done[0].p.postedBy));
   if(next) bar.appendChild(mk('下一則',next,next.at));
+  // 最近一筆異動：誰、做了什麼、幾點；點一下跳到下面的異動紀錄
+  const x=S.acts[0];
+  if(x){ const by=x.by||''; const b=document.createElement('button'); b.type='button'; b.className='mini latest'+(now-x.t<10*6e4?' fresh':''); b.dataset.act='golog';
+    const d=document.createElement('div'); d.innerHTML=actText(x);
+    b.innerHTML=`<span class="av ${by||'none'}">${WHO[by].a}</span><span class="tx"><span class="lab">最近更新・${esc(rel(x.t)+' '+hm(x.t))}${now-x.t<10*6e4?'<i class="new">新</i>':''}</span><span class="v">${esc(WHO[by].n+' '+d.textContent)}</span></span>`;
+    b.title=WHO[by].n+' '+d.textContent; bar.appendChild(b) }
 }
 
 function actText(x){
@@ -643,6 +653,7 @@ document.addEventListener('click',e=>{
   const a=b.dataset.act,k=b.dataset.k;
   if(a!=='del') S.armDel=false;
   if(a==='actmore'){S.actAll=!S.actAll;renderActivity();return}
+  if(a==='golog'){ $('#activity').scrollIntoView({behavior:'smooth',block:'start'}); return }
   if(a==='unpick'){S.pick=null;render(true);return}
   if(a==='close'){ if(e.target===b){saveLink();S.sheet=null;render(true)} return }
   if(a==='wk'){S.wk=k==='0'?0:S.wk+(+k);render(true);return}
