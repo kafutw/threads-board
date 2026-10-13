@@ -730,6 +730,17 @@ if(ls.get('tb-me')) S.me=ls.get('tb-me');
 if(!G.tok||!ls.get('tb-me')) showSetup(''); else refresh(true);
 setInterval(()=>{ if(document.visibilityState==='visible'&&!S.dragging) refresh(false) },8000);
 setInterval(syncBadge,20000);
+// 網頁本身有新版就自動換：比對 GitHub Pages 的更新時間，不在拖曳、沒開面板、沒在打字時才重新整理
+let PAGE_LM=null;
+async function checkNewPage(){
+  try{
+    const r=await fetch(location.pathname+'?v='+Date.now(),{method:'HEAD',cache:'no-store'}); const lm=r.headers.get('last-modified'); if(!lm) return;
+    if(!PAGE_LM){ PAGE_LM=lm; return }
+    if(lm!==PAGE_LM&&!S.dragging&&!S.sheet&&!(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))&&!G.busy&&!S.pendingLog.length) location.reload();
+  }catch(_){}
+}
+checkNewPage(); setInterval(checkNewPage,60000);
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checkNewPage() });
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') refresh(false) });
 })();
 </script>
