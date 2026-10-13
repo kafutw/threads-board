@@ -420,7 +420,6 @@ function renderBar(){
   const mk=(lab,p,t,by)=>{const s=document.createElement('span');s.className='mini';by=by||p.who||'';
     s.innerHTML=`<span class="av ${by||'none'}">${WHO[by].a}</span><span class="tx"><span class="lab">${lab}</span><span class="v num">${esc(rel(t)+' '+hm(t))}</span></span>`;
     s.title=p.title||'';return s};
-  if(done[0]) bar.appendChild(mk('上一則',done[0].p,done[0].t,done[0].p.postedBy));
   // 最近一筆異動：誰、做了什麼、幾點；點一下跳到下面的異動紀錄
   const x=S.acts[0];
   if(x){ const by=x.by||''; const b=document.createElement('button'); b.type='button'; b.className='mini latest'+(now-x.t<10*6e4?' fresh':''); b.dataset.act='golog';
