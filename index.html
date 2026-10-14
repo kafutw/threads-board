@@ -26,7 +26,7 @@ img{max-width:100%}
   --bg:#F3F3F1; --surface:#FFFFFF; --soft:#F1F1EF; --soft2:#E7E7E4; --ink:#101010; --muted:#8B8B88; --line:#E9E9E6;
   --kafka:#2E7C85; --xz:#C24F7B; --none:#A3A3A0;
   --ok:#1E9A55; --ok-soft:#E3F4EA; --warn:#C96E14; --warn-soft:#FBEEDD; --bad:#E2373D;
-  --th:#101010; --th-on:#FFFFFF;
+  --th:#101010; --th-on:#FFFFFF; --short:#7C5CE0; --short-soft:#F1ECFF; --short-ink:#6A4BCF;
   --shadow:0 1px 2px rgb(16 16 16/.06),0 6px 24px rgb(16 16 16/.05);
   --f:"Plus Jakarta Sans","Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
 }
@@ -34,12 +34,12 @@ img{max-width:100%}
   --bg:#0A0A0A; --surface:#171717; --soft:#202020; --soft2:#2A2A2A; --ink:#F3F3F3; --muted:#7D7D7D; --line:#262626;
   --kafka:#5DB3BC; --xz:#EC8CB2; --none:#6A6A6A;
   --ok:#4CC783; --ok-soft:#14291D; --warn:#F0A458; --warn-soft:#2E2215; --bad:#FF5C61;
-  --th:#F3F3F3; --th-on:#0A0A0A; --shadow:0 1px 2px rgb(0 0 0/.4); color-scheme:dark}}
+  --th:#F3F3F3; --th-on:#0A0A0A; --short:#A58BFF; --short-soft:#231C3A; --short-ink:#C3B2FF; --shadow:0 1px 2px rgb(0 0 0/.4); color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0A0A0A; --surface:#171717; --soft:#202020; --soft2:#2A2A2A; --ink:#F3F3F3; --muted:#7D7D7D; --line:#262626;
   --kafka:#5DB3BC; --xz:#EC8CB2; --none:#6A6A6A;
   --ok:#4CC783; --ok-soft:#14291D; --warn:#F0A458; --warn-soft:#2E2215; --bad:#FF5C61;
-  --th:#F3F3F3; --th-on:#0A0A0A; --shadow:0 1px 2px rgb(0 0 0/.4); color-scheme:dark}
+  --th:#F3F3F3; --th-on:#0A0A0A; --short:#A58BFF; --short-soft:#231C3A; --short-ink:#C3B2FF; --shadow:0 1px 2px rgb(0 0 0/.4); color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--f);font-size:15px;line-height:1.5;margin:0;-webkit-font-smoothing:antialiased}
 .wrap{max-width:1200px;margin:0 auto;padding-inline:16px;padding-block:22px 48px}
@@ -127,18 +127,14 @@ body.dragging .cell:empty{border-color:var(--muted)}
 @keyframes flash{0%,100%{box-shadow:0 0 0 2.5px var(--warn)}50%{box-shadow:0 0 0 4px var(--warn),0 0 18px var(--warn)}}
 .sync{font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
 .sync.ok{color:var(--ok)}.sync.busy{color:var(--warn)}.sync.bad{color:var(--bad)}
-.hd.shd{color:var(--ink)}
-.scell{min-height:86px;border:1.5px dashed var(--line);border-radius:18px;padding:8px;display:flex;flex-direction:column;justify-content:center;gap:6px;cursor:pointer;background:transparent}
-.scell:hover{border-color:var(--muted)}
-.scell .sadd{font-size:12.5px;font-weight:700;color:var(--muted);text-align:center}
-.schip{display:flex;align-items:center;gap:10px;width:100%;border:0;border-radius:12px;padding:6px 8px;background:var(--soft);text-align:left;color:var(--ink);cursor:pointer}
-.schip .si{width:34px;height:34px;border-radius:50%;background:var(--th);display:grid;place-items:center;font-size:16px;flex:none}
-.schip .body{flex:1;min-width:0;display:grid;gap:2px;line-height:1.25}
-.schip .t{font-size:15px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.schip .st{font-size:11.5px;font-weight:600;color:var(--muted)}
+.cell.has-short{background:var(--short-soft);border:1.5px solid var(--short);cursor:default}
+.schip{display:flex;align-items:center;gap:12px;width:100%;border:0;border-radius:12px;padding:6px 8px;background:transparent;text-align:left;color:var(--ink);cursor:pointer}
+.schip .si{width:38px;height:38px;border-radius:50%;background:var(--short);display:grid;place-items:center;font-size:17px;flex:none}
+.schip .body{flex:1;min-width:0;display:grid;gap:3px;line-height:1.25}
+.schip .t{font-size:16.5px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.schip .st{font-size:12px;font-weight:600;color:var(--short-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .schip.done{opacity:.6}
-.row.clash .scell,.row.clash .cell:not(:empty){border-color:var(--warn);border-style:solid}
-.clashtag{margin-top:4px;font-size:10.5px;font-weight:800;color:#fff;background:var(--warn);border-radius:999px;padding:1px 6px;white-space:nowrap}
+body.dragging .cell.has-short{opacity:.45}
 .chip .warn{position:absolute;top:-7px;right:-5px;height:18px;padding:0 6px;border-radius:999px;background:var(--warn);color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center}
 .pchip,.chip.mv{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 #cal,.pool,.top,.now{-webkit-user-select:none;user-select:none}
@@ -407,8 +403,9 @@ function applyData(name,d){
 }
 const newId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 // 異動紀錄先記在手上，跟著下一次存排程一起存；沒有排程要存的（例如改時段）就單獨存一次
+function unlog(e){ S.pendingLog=S.pendingLog.filter(x=>x!==e); S.acts=S.acts.filter(x=>x!==e); renderActivity() }
 function logAct(a,o){ const e={a,by:S.me,t:Date.now(),...o}; S.pendingLog.unshift(e); S.acts=[e,...S.acts].slice(0,60); renderActivity();
-  clearTimeout(G.flushT); G.flushT=setTimeout(()=>{ if(S.pendingLog.length) ghTx('posts',NOOP,'異動紀錄').catch(()=>{}) },1500) }
+  clearTimeout(G.flushT); G.flushT=setTimeout(()=>{ if(S.pendingLog.length) ghTx('posts',NOOP,'異動紀錄').catch(()=>{}) },1500); return e }
 let tT;function toast(m,ms){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(tT);tT=setTimeout(()=>t.hidden=true,ms||2400)}
 
 /* ---------- 畫面 ---------- */
@@ -452,9 +449,9 @@ function actText(x){
     case '寫': return `新增自訂貼文 ${n}`;
     case '連結': return `幫 ${n} 貼上 Threads 連結`;
     case '刪連結': return `拿掉 ${n} 的 Threads 連結`;
-    case '片': return `把短影片 ${n} 排在 ${esc(md(x.at)+'（'+wd(x.at)+'）')}`;
-    case '改片': return `修改 ${esc(md(x.at)+'（'+wd(x.at)+'）')} 的短影片 ${n}`;
-    case '刪片': return `拿掉 ${esc(md(x.at)+'（'+wd(x.at)+'）')} 的短影片 ${n}`;
+    case '片': return `把短影片 ${n} 排到 ${w(x.at)}`;
+    case '改片': return `修改 ${w(x.at)} 的短影片 ${n}`;
+    case '刪片': return `拿掉 ${w(x.at)} 的短影片 ${n}`;
     case '設定': return `把發文時段改成 ${esc((x.slots||[]).join('、'))}，間隔 ${esc(x.gapH)} 小時`;
     default: return esc(x.a);
   }
@@ -492,20 +489,21 @@ function renderCal(){
   // 欄位＝設定的時段＋這週有貼文的其他時間
   const end=addD(t0,7); const mins=new Set(slotMins());
   timed.forEach(p=>{if(p.at>=t0&&p.at<end) mins.add(minOf(p.at))});
+  S.shorts.forEach(x=>{if(x.at>=t0&&x.at<end) mins.add(minOf(x.at))});
   const cols=[...mins].sort((a,b)=>a-b);
   const byT=new Map(); timed.forEach(p=>{if(!byT.has(p.at))byT.set(p.at,[]);byT.get(p.at).push(p)});
-  const N=cols.length+1;
-  let h=`<div class="row head" style="--n:${N}"><span></span>${cols.map(m=>`<span class="hd">${pad(Math.floor(m/60))}:${pad(m%60)}</span>`).join('')}<span class="hd shd">🎬 短影片</span></div>`;
+  const N=cols.length, shAt=new Map(S.shorts.map(x=>[x.at,x]));
+  let h=`<div class="row head" style="--n:${N}"><span></span>${cols.map(m=>`<span class="hd">${pad(Math.floor(m/60))}:${pad(m%60)}</span>`).join('')}</div>`;
   for(let d=0;d<7;d++){
     const day=addD(t0,d), isToday=day===sod(now), past=day<sod(now);
     const w=isToday?'今天':(day===addD(sod(now),1)?'明天':'週'+wd(day));
-    const sh=S.shorts.filter(x=>x.day===day), nPost=timed.filter(p=>p.at>=day&&p.at<addD(day,1)).length, clash=sh.length&&nPost;
-    h+=`<div class="row ${isToday?'today':''} ${past?'past':''} ${clash?'clash':''}" style="--n:${N}"><div class="day"><span class="dn num">${new Date(day).getDate()}</span><span class="dw">${w}</span>${clash?`<span class="clashtag" title="這天有短影片，又有 ${nPost} 則貼文">同天 ${sh.length+nPost} 篇</span>`:''}</div>`;
+    h+=`<div class="row ${isToday?'today':''} ${past?'past':''}" style="--n:${N}"><div class="day"><span class="dn num">${new Date(day).getDate()}</span><span class="dw">${w}</span></div>`;
     for(const m of cols){
       const t=day+m*6e4, ps=byT.get(t)||[];
+      const x=shAt.get(t);
+      if(x){ h+=`<div class="cell has-short" data-t="${t}"><button class="schip ${x.status==='posted'?'done':''}" data-act="shortOpen" data-id="${esc(x.id)}" title="${esc(x.title)}"><span class="si">🎬</span><span class="body"><span class="t">${esc(x.title)}</span><span class="st">${x.status==='posted'?'已發・':''}短影片・${esc(WHO[x.by||''].n)} ${esc(md(x.t)+' '+hm(x.t))}</span></span></button></div>`; continue }
       h+=`<div class="cell ${t<now&&!ps.length?'gone':''}" data-t="${t}" data-act="cell">${ps.map(chipHtml).join('')}</div>`;
     }
-    h+=`<div class="scell" data-act="shortNew" data-day="${day}">${sh.map(x=>`<button class="schip ${x.status==='posted'?'done':''}" data-act="shortOpen" data-id="${esc(x.id)}" title="${esc(x.title)}"><span class="si">🎬</span><span class="body"><span class="t">${esc(x.title)}</span><span class="st">${esc(WHO[x.by||''].n)} ${esc(md(x.t)+' '+hm(x.t))}</span></span></button>`).join('')||(day>=sod(now)?'<span class="sadd">＋ 短影片</span>':'')}</div>`;
     h+='</div>';
   }
   $('#cal').innerHTML=S.loaded?h:'<div class="empty" style="padding:20px">讀取中…</div>';
@@ -536,14 +534,12 @@ function renderSheet(){
   }
   if(S.sheet&&S.sheet.startsWith('short:')){
     if(L.querySelector('#shortTitle')) return;
-    const key=S.sheet.slice(6), x=S.shorts.find(v=>v.id===key), day=x?x.day:+key;
-    const nPost=S.posts.filter(p=>p.at!=null&&p.at>=day&&p.at<addD(day,1)).length;
+    const key=S.sheet.slice(6), x=key.startsWith('new:')?null:S.shorts.find(v=>v.id===key), at=x?x.at:+key.slice(4);
     L.innerHTML=`<div class="scrim" data-act="close"><div class="sheet" data-stop>
-      <div><div class="ttl">🎬 ${esc(md(day)+'（'+wd(day)+'）')} 的短影片</div>
-      ${nPost?`<div class="when" style="color:var(--warn)">這天已經排了 ${nPost} 則 Threads 貼文，再放短影片就是同一天發 ${nPost+1} 篇</div>`:'<div class="when">這天還沒有其他貼文</div>'}</div>
+      <div><div class="ttl">🎬 短影片</div><div class="when">${esc(rel(at)+' '+hm(at))}・這個時段排了短影片就不能再放貼文</div></div>
       <label class="setgrid" style="gap:6px;font-size:13px;font-weight:600;color:var(--muted)" for="shortTitle">要發哪一支<input id="shortTitle" placeholder="例如：中山站韓式吃到飽" value="${esc(x?x.title:'')}" autocomplete="off"></label>
       <label class="setgrid" style="gap:6px;font-size:13px;font-weight:600;color:var(--muted)" for="shortLink">連結（可不填）<input id="shortLink" type="url" placeholder="YouTube／Threads 網址" value="${esc(x&&x.link||'')}"></label>
-      <button class="mainbtn" data-act="shortSave">${x?'儲存':'排上這天'}</button>
+      <button class="mainbtn" data-act="shortSave">${x?'儲存':'排進這個時段'}</button>
       ${x?`<div class="bigbtns">${x.link?`<a class="bb" href="${esc(x.link)}" target="_blank" rel="noopener"><span class="ic">▶</span>看影片</a>`:''}<button class="bb" data-act="shortDone"><span class="ic">${x.status==='posted'?'↺':'✓'}</span>${x.status==='posted'?'改回未發':'已發'}</button><button class="bb del" data-act="shortDel"><span class="ic">🗑</span>拿掉</button></div>`:''}
     </div></div>`;
     setTimeout(()=>{const i=$('#shortTitle'); if(i&&!x) i.focus()},0); return;
@@ -576,22 +572,24 @@ function localPost(id,fn){ const p=S.posts.find(x=>x.id===id); if(p){fn(p);rende
 async function patch(id,d){ localPost(id,p=>Object.assign(p,d)); try{await ghTx('posts',x=>{ if(x.posts[id]) Object.assign(x.posts[id],d,{updatedAt:Date.now(),by:S.me}); return x },'更新 '+nm(S.posts.find(p=>p.id===id)))}catch(e){fail(e)}}
 function newPost(d){return {kind:'article',aid:null,title:'',url:'',who:S.me,status:'planned',at:null,postedAt:null,link:'',log:[stamp('放')],...d,createdAt:Date.now(),updatedAt:Date.now(),by:S.me}}
 function shortAction(a){
-  const key=S.sheet.slice(6), x=S.shorts.find(v=>v.id===key), day=x?x.day:+key;
+  const key=S.sheet.slice(6), x=key.startsWith('new:')?null:S.shorts.find(v=>v.id===key), at=x?x.at:+key.slice(4);
   if(a==='shortSave'){
     const title=$('#shortTitle').value.trim(), link=$('#shortLink').value.trim();
     if(!title) return toast('寫一下是哪一支短影片');
     if(link&&!/^https?:\/\//.test(link)) return toast('連結要是網址');
-    const id=x?x.id:newId(), rec={...(x||{}),day,title,link,by:x?x.by:S.me,t:x?x.t:Date.now(),status:x?x.status||'planned':'planned'}; delete rec.id;
-    logAct(x?'改片':'片',{name:title,at:day});
+    if(!x&&(S.shorts.some(v=>v.at===at)||S.posts.some(p=>p.at===at))){ S.sheet=null; render(true); return toast('這個時段剛剛被排走了') }
+    const id=x?x.id:newId(), rec={...(x||{}),at,title,link,by:x?x.by:S.me,t:x?x.t:Date.now(),status:x?x.status||'planned':'planned'}; delete rec.id; delete rec.day;
+    const le=logAct(x?'改片':'片',{name:title,at});
     S.shorts=[...S.shorts.filter(v=>v.id!==id),{id,...rec}]; S.sheet=null; render(true);
-    ghTx('posts',d=>{d.shorts=d.shorts||{}; d.shorts[id]=rec; return d},(x?'改短影片 ':'排短影片 ')+title).catch(fail);
-    const n=S.posts.filter(p=>p.at!=null&&p.at>=day&&p.at<addD(day,1)).length;
-    toast(n?'⚠️ 排好了，不過這天還有 '+n+' 則貼文':'排好了 '+md(day)+' 的短影片',n?6000:2400); return;
+    ghTx('posts',d=>{d.shorts=d.shorts||{};
+      if(!x&&(Object.values(d.shorts).some(v=>v.at===at)||Object.values(d.posts||{}).some(p=>p.at===at))) throw {code:'taken'};
+      d.shorts[id]=rec; return d},(x?'改短影片 ':'排短影片 ')+title).then(()=>toast(x?'改好了':'排好了 '+rel(at)+' '+hm(at)+' 的短影片'))
+      .catch(e=>{ if(e&&e.code==='taken'){ unlog(le); S.shorts=S.shorts.filter(v=>v.id!==id); render(true); toast('這個時段剛剛被小臻／卡夫卡排走了，換一格吧',5000) } else fail(e) }); return;
   }
   if(!x) return;
-  if(a==='shortDone'){ const st=x.status==='posted'?'planned':'posted'; logAct(st==='posted'?'發':'改回',{name:'🎬 '+x.title,at:day}); x.status=st; S.sheet=null; render(true);
+  if(a==='shortDone'){ const st=x.status==='posted'?'planned':'posted'; logAct(st==='posted'?'發':'改回',{name:'🎬 '+x.title,at}); x.status=st; S.sheet=null; render(true);
     ghTx('posts',d=>{ if(d.shorts&&d.shorts[x.id]) d.shorts[x.id].status=st; return d },'短影片 '+x.title).catch(fail); return }
-  if(a==='shortDel'){ logAct('刪片',{name:x.title,at:day}); S.shorts=S.shorts.filter(v=>v.id!==x.id); S.sheet=null; render(true);
+  if(a==='shortDel'){ logAct('刪片',{name:x.title,at}); S.shorts=S.shorts.filter(v=>v.id!==x.id); S.sheet=null; render(true);
     ghTx('posts',d=>{ if(d.shorts) delete d.shorts[x.id]; return d },'拿掉短影片 '+x.title).catch(fail) }
 }
 function backToPool(q){ if(!q) return; S.posts=S.posts.filter(x=>x.id!==q.id); render(true);
@@ -603,10 +601,13 @@ function artData(key){const a=poolItem(key);return a?{kind:'article',kit:a.key,n
 async function placeAt(t,moveId,newData){
   const mins=slotMins(); if(!mins.length) return toast('先到 ⚙ 設定發文時段');
   const seq=[t]; for(let d=0;d<60&&seq.length<200;d++){const day=addD(sod(t),d);for(const m of mins){const x=day+m*6e4;if(x>t)seq.push(x)}}
+  const shortAt=new Set(S.shorts.map(x=>x.at));
+  if(shortAt.has(t)) return toast('這個時段已經有短影片了');
   const occ=new Map(); S.posts.forEach(p=>{if(p.at!=null&&p.id!==moveId){if(!occ.has(p.at))occ.set(p.at,[]);occ.get(p.at).push(p)}});
   const moves=[]; let carry={id:moveId,d:newData};
   for(const x of seq){
     const os=occ.get(x)||[];
+    if(shortAt.has(x)) continue;   // 短影片佔住的時段跳過
     if(os.some(o=>o.status==='posted')&&x!==t) continue;
     moves.push({c:carry,at:x});
     const o=os.find(o=>o.status!=='posted'); if(!o) break;
@@ -622,8 +623,7 @@ async function placeAt(t,moveId,newData){
     const p=snap(m.c.id); return {id:m.c.id,at:m.at,log:i===0?addLog(p||{},p&&p.at==null?'放':'移'):null} });
   plan.forEach(x=>{ if(x.neu) S.posts.push({id:x.id,...x.neu}); else { const p=snap(x.id); if(p){p.at=x.at; if(x.log)p.log=x.log} } }); render(true);
   try{ await ghTx('posts',d=>{ plan.forEach(x=>{ if(x.neu) d.posts[x.id]=x.neu; else if(d.posts[x.id]){ d.posts[x.id].at=x.at; if(x.log) d.posts[x.id].log=x.log; d.posts[x.id].updatedAt=Date.now(); d.posts[x.id].by=S.me } }); return d },(main.c.d?'排 ':'移 ')+(main.c.d?(main.c.d.name||''):nm(mp))); }catch(e){ fail(e); return }
-  const sd=S.shorts.find(x=>x.day===sod(t));
-  toast(sd?'⚠️ 放好了，不過 '+md(t)+' 已經有短影片「'+sd.title+'」，同一天會發兩篇':(pushed?'放好了，後面 '+pushed+' 則往後推':'放好了 '+rel(t)+' '+hm(t)),sd?6000:2400);
+  toast(pushed?'放好了，後面 '+pushed+' 則往後推':'放好了 '+rel(t)+' '+hm(t));
 }
 
 /* ---------- 拖曳 ---------- */
@@ -665,7 +665,7 @@ function moveDrag(){
   if(!DR.ghost) return;
   DR.ghost.style.transform=`translate(${DR.x-DR.ox}px,${DR.y-DR.oy}px) rotate(-2deg) scale(1.03)`;
   const hit=document.elementFromPoint(DR.x,DR.y);
-  const tgt=hit&&(hit.closest('#cal .cell')||(DR.src&&DR.src.classList.contains('chip')&&hit.closest('.pool')));
+  const tgt=hit&&(hit.closest('#cal .cell:not(.has-short)')||(DR.src&&DR.src.classList.contains('chip')&&hit.closest('.pool')));
   if(tgt!==DR.over){ if(DR.over) DR.over.classList.remove('over'); DR.over=tgt; if(tgt) tgt.classList.add('over'); }
 }
 function autoScroll(){
@@ -709,8 +709,9 @@ document.addEventListener('click',e=>{
   if(a==='pick'){ const id=b.dataset.id, key=b.dataset.key||null;
     const same=S.pick&&((id&&S.pick.id===id)||(key&&S.pick.key===key)); S.pick=same?null:{id,key};
     render(true); return }
-  if(a==='cell'){ if(S.pick) usePick(+b.dataset.t); return }
-  if(a==='shortNew'){ if(e.target.closest('.schip')) return; S.sheet='short:'+b.dataset.day; render(true); return }
+  if(a==='cell'){ if(S.pick){ usePick(+b.dataset.t); return }
+    if(S.ro||b.querySelector('.chip')||b.classList.contains('gone')) return;
+    S.sheet='short:new:'+b.dataset.t; render(true); return }
   if(a==='shortOpen'){ S.sheet='short:'+b.dataset.id; render(true); return }
   if(a==='shortSave'||a==='shortDel'||a==='shortDone'){ shortAction(a); return }
   if(a==='idea'){ S.sheet='idea'; render(true); setTimeout(()=>{const i=$('#ideaIn'); if(i) i.focus()},0); return }
