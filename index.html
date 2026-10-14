@@ -127,6 +127,18 @@ body.dragging .cell:empty{border-color:var(--muted)}
 @keyframes flash{0%,100%{box-shadow:0 0 0 2.5px var(--warn)}50%{box-shadow:0 0 0 4px var(--warn),0 0 18px var(--warn)}}
 .sync{font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
 .sync.ok{color:var(--ok)}.sync.busy{color:var(--warn)}.sync.bad{color:var(--bad)}
+.hd.shd{color:var(--ink)}
+.scell{min-height:86px;border:1.5px dashed var(--line);border-radius:18px;padding:8px;display:flex;flex-direction:column;justify-content:center;gap:6px;cursor:pointer;background:transparent}
+.scell:hover{border-color:var(--muted)}
+.scell .sadd{font-size:12.5px;font-weight:700;color:var(--muted);text-align:center}
+.schip{display:flex;align-items:center;gap:10px;width:100%;border:0;border-radius:12px;padding:6px 8px;background:var(--soft);text-align:left;color:var(--ink);cursor:pointer}
+.schip .si{width:34px;height:34px;border-radius:50%;background:var(--th);display:grid;place-items:center;font-size:16px;flex:none}
+.schip .body{flex:1;min-width:0;display:grid;gap:2px;line-height:1.25}
+.schip .t{font-size:15px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.schip .st{font-size:11.5px;font-weight:600;color:var(--muted)}
+.schip.done{opacity:.6}
+.row.clash .scell,.row.clash .cell:not(:empty){border-color:var(--warn);border-style:solid}
+.clashtag{margin-top:4px;font-size:10.5px;font-weight:800;color:#fff;background:var(--warn);border-radius:999px;padding:1px 6px;white-space:nowrap}
 .chip .warn{position:absolute;top:-7px;right:-5px;height:18px;padding:0 6px;border-radius:999px;background:var(--warn);color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center}
 .pchip,.chip.mv{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 #cal,.pool,.top,.now{-webkit-user-select:none;user-select:none}
@@ -309,7 +321,7 @@ const WHO={kafka:{n:'卡夫卡',a:'卡'},xz:{n:'小臻',a:'臻'},'':{n:'未定',
 const WD='日一二三四五六';
 const TL='<svg class="tlogo" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.964-.065-1.19.408-2.285 1.33-3.082.88-.76 2.119-1.207 3.583-1.291a13.853 13.853 0 0 1 3.02.142c-.126-.742-.375-1.332-.75-1.757-.513-.586-1.308-.883-2.359-.89h-.029c-.844 0-1.992.232-2.721 1.32L7.734 7.847c.98-1.454 2.568-2.256 4.478-2.256h.044c3.194.02 5.097 1.975 5.287 5.388.108.046.216.094.321.142 1.49.7 2.58 1.761 3.154 3.07.797 1.82.871 4.79-1.548 7.158-1.85 1.81-4.094 2.628-7.277 2.65Zm1.003-11.69c-.242 0-.487.007-.739.021-1.836.103-2.98.946-2.916 2.143.067 1.256 1.452 1.839 2.784 1.767 1.224-.065 2.818-.543 3.086-3.71a10.5 10.5 0 0 0-2.215-.221z"/></svg>';
 const DEF={slots:['12:00','20:30'],gapH:3};
-const S={db:null,ro:false,loaded:false,posts:[],drive:[],acts:[],actLoaded:false,pendingLog:[],flash:{},synced:0,settings:{...DEF},me:'kafka',uid:null,
+const S={db:null,ro:false,loaded:false,posts:[],drive:[],acts:[],actLoaded:false,pendingLog:[],flash:{},shorts:[],synced:0,settings:{...DEF},me:'kafka',uid:null,
   wk:0,filter:'kit',q:'',pick:null,sheet:null,armDel:false,dragging:false,pending:false,sorts:[]};
 const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
 
@@ -389,7 +401,7 @@ async function ghTxRun(name,fn,msg){
 }
 function applyData(name,d){
   if(!d) return;
-  if(name==='posts'){ S.posts=Object.entries(d.posts||{}).map(([id,v])=>({id,...v})); S.loaded=true; S.acts=[...S.pendingLog,...(d.log||[])].slice(0,60); S.actLoaded=true; }
+  if(name==='posts'){ S.posts=Object.entries(d.posts||{}).map(([id,v])=>({id,...v})); S.shorts=Object.entries(d.shorts||{}).map(([id,v])=>({id,...v})); S.loaded=true; S.acts=[...S.pendingLog,...(d.log||[])].slice(0,60); S.actLoaded=true; }
   if(name==='pool'){ S.drive=d.items||[]; S.synced=d.syncedAt||0; }
   if(name==='settings'){ S.settings={...DEF,...d}; }
 }
@@ -440,6 +452,9 @@ function actText(x){
     case '寫': return `新增自訂貼文 ${n}`;
     case '連結': return `幫 ${n} 貼上 Threads 連結`;
     case '刪連結': return `拿掉 ${n} 的 Threads 連結`;
+    case '片': return `把短影片 ${n} 排在 ${esc(md(x.at)+'（'+wd(x.at)+'）')}`;
+    case '改片': return `修改 ${esc(md(x.at)+'（'+wd(x.at)+'）')} 的短影片 ${n}`;
+    case '刪片': return `拿掉 ${esc(md(x.at)+'（'+wd(x.at)+'）')} 的短影片 ${n}`;
     case '設定': return `把發文時段改成 ${esc((x.slots||[]).join('、'))}，間隔 ${esc(x.gapH)} 小時`;
     default: return esc(x.a);
   }
@@ -479,15 +494,18 @@ function renderCal(){
   timed.forEach(p=>{if(p.at>=t0&&p.at<end) mins.add(minOf(p.at))});
   const cols=[...mins].sort((a,b)=>a-b);
   const byT=new Map(); timed.forEach(p=>{if(!byT.has(p.at))byT.set(p.at,[]);byT.get(p.at).push(p)});
-  let h=`<div class="row head" style="--n:${cols.length}"><span></span>${cols.map(m=>`<span class="hd">${pad(Math.floor(m/60))}:${pad(m%60)}</span>`).join('')}</div>`;
+  const N=cols.length+1;
+  let h=`<div class="row head" style="--n:${N}"><span></span>${cols.map(m=>`<span class="hd">${pad(Math.floor(m/60))}:${pad(m%60)}</span>`).join('')}<span class="hd shd">🎬 短影片</span></div>`;
   for(let d=0;d<7;d++){
     const day=addD(t0,d), isToday=day===sod(now), past=day<sod(now);
     const w=isToday?'今天':(day===addD(sod(now),1)?'明天':'週'+wd(day));
-    h+=`<div class="row ${isToday?'today':''} ${past?'past':''}" style="--n:${cols.length}"><div class="day"><span class="dn num">${new Date(day).getDate()}</span><span class="dw">${w}</span></div>`;
+    const sh=S.shorts.filter(x=>x.day===day), nPost=timed.filter(p=>p.at>=day&&p.at<addD(day,1)).length, clash=sh.length&&nPost;
+    h+=`<div class="row ${isToday?'today':''} ${past?'past':''} ${clash?'clash':''}" style="--n:${N}"><div class="day"><span class="dn num">${new Date(day).getDate()}</span><span class="dw">${w}</span>${clash?`<span class="clashtag" title="這天有短影片，又有 ${nPost} 則貼文">同天 ${sh.length+nPost} 篇</span>`:''}</div>`;
     for(const m of cols){
       const t=day+m*6e4, ps=byT.get(t)||[];
       h+=`<div class="cell ${t<now&&!ps.length?'gone':''}" data-t="${t}" data-act="cell">${ps.map(chipHtml).join('')}</div>`;
     }
+    h+=`<div class="scell" data-act="shortNew" data-day="${day}">${sh.map(x=>`<button class="schip ${x.status==='posted'?'done':''}" data-act="shortOpen" data-id="${esc(x.id)}" title="${esc(x.title)}"><span class="si">🎬</span><span class="body"><span class="t">${esc(x.title)}</span><span class="st">${esc(WHO[x.by||''].n)} ${esc(md(x.t)+' '+hm(x.t))}</span></span></button>`).join('')||(day>=sod(now)?'<span class="sadd">＋ 短影片</span>':'')}</div>`;
     h+='</div>';
   }
   $('#cal').innerHTML=S.loaded?h:'<div class="empty" style="padding:20px">讀取中…</div>';
@@ -516,6 +534,20 @@ function renderSheet(){
       <button class="mainbtn" data-act="saveSettings">儲存</button>
       <div style="display:flex;gap:10px;align-items:center;font-size:13px;color:var(--muted);font-weight:600;border-top:1px solid var(--line);padding-top:12px">這台裝置記成 <b style="color:var(--ink)">${WHO[S.me].n}</b><button class="bb" style="margin-left:auto;padding:8px 12px" data-act="logout">換人／重設通行碼</button></div></div></div>`; return;
   }
+  if(S.sheet&&S.sheet.startsWith('short:')){
+    if(L.querySelector('#shortTitle')) return;
+    const key=S.sheet.slice(6), x=S.shorts.find(v=>v.id===key), day=x?x.day:+key;
+    const nPost=S.posts.filter(p=>p.at!=null&&p.at>=day&&p.at<addD(day,1)).length;
+    L.innerHTML=`<div class="scrim" data-act="close"><div class="sheet" data-stop>
+      <div><div class="ttl">🎬 ${esc(md(day)+'（'+wd(day)+'）')} 的短影片</div>
+      ${nPost?`<div class="when" style="color:var(--warn)">這天已經排了 ${nPost} 則 Threads 貼文，再放短影片就是同一天發 ${nPost+1} 篇</div>`:'<div class="when">這天還沒有其他貼文</div>'}</div>
+      <label class="setgrid" style="gap:6px;font-size:13px;font-weight:600;color:var(--muted)" for="shortTitle">要發哪一支<input id="shortTitle" placeholder="例如：中山站韓式吃到飽" value="${esc(x?x.title:'')}" autocomplete="off"></label>
+      <label class="setgrid" style="gap:6px;font-size:13px;font-weight:600;color:var(--muted)" for="shortLink">連結（可不填）<input id="shortLink" type="url" placeholder="YouTube／Threads 網址" value="${esc(x&&x.link||'')}"></label>
+      <button class="mainbtn" data-act="shortSave">${x?'儲存':'排上這天'}</button>
+      ${x?`<div class="bigbtns">${x.link?`<a class="bb" href="${esc(x.link)}" target="_blank" rel="noopener"><span class="ic">▶</span>看影片</a>`:''}<button class="bb" data-act="shortDone"><span class="ic">${x.status==='posted'?'↺':'✓'}</span>${x.status==='posted'?'改回未發':'已發'}</button><button class="bb del" data-act="shortDel"><span class="ic">🗑</span>拿掉</button></div>`:''}
+    </div></div>`;
+    setTimeout(()=>{const i=$('#shortTitle'); if(i&&!x) i.focus()},0); return;
+  }
   if(S.sheet==='idea'){
     if(!L.querySelector('#ideaIn')) L.innerHTML=`<div class="scrim" data-act="close"><div class="sheet" data-stop><div class="ttl">自訂貼文</div>
       <input id="ideaIn" placeholder="例如：週末日常、轉貼活動" autocomplete="off"><button class="mainbtn" data-act="ideaOk">加到文章池</button></div></div>`;
@@ -543,6 +575,25 @@ function fail(e){const c=e&&e.code;if(c===401){resetSetup('通行碼失效了，
 function localPost(id,fn){ const p=S.posts.find(x=>x.id===id); if(p){fn(p);render(true)} }
 async function patch(id,d){ localPost(id,p=>Object.assign(p,d)); try{await ghTx('posts',x=>{ if(x.posts[id]) Object.assign(x.posts[id],d,{updatedAt:Date.now(),by:S.me}); return x },'更新 '+nm(S.posts.find(p=>p.id===id)))}catch(e){fail(e)}}
 function newPost(d){return {kind:'article',aid:null,title:'',url:'',who:S.me,status:'planned',at:null,postedAt:null,link:'',log:[stamp('放')],...d,createdAt:Date.now(),updatedAt:Date.now(),by:S.me}}
+function shortAction(a){
+  const key=S.sheet.slice(6), x=S.shorts.find(v=>v.id===key), day=x?x.day:+key;
+  if(a==='shortSave'){
+    const title=$('#shortTitle').value.trim(), link=$('#shortLink').value.trim();
+    if(!title) return toast('寫一下是哪一支短影片');
+    if(link&&!/^https?:\/\//.test(link)) return toast('連結要是網址');
+    const id=x?x.id:newId(), rec={...(x||{}),day,title,link,by:x?x.by:S.me,t:x?x.t:Date.now(),status:x?x.status||'planned':'planned'}; delete rec.id;
+    logAct(x?'改片':'片',{name:title,at:day});
+    S.shorts=[...S.shorts.filter(v=>v.id!==id),{id,...rec}]; S.sheet=null; render(true);
+    ghTx('posts',d=>{d.shorts=d.shorts||{}; d.shorts[id]=rec; return d},(x?'改短影片 ':'排短影片 ')+title).catch(fail);
+    const n=S.posts.filter(p=>p.at!=null&&p.at>=day&&p.at<addD(day,1)).length;
+    toast(n?'⚠️ 排好了，不過這天還有 '+n+' 則貼文':'排好了 '+md(day)+' 的短影片',n?6000:2400); return;
+  }
+  if(!x) return;
+  if(a==='shortDone'){ const st=x.status==='posted'?'planned':'posted'; logAct(st==='posted'?'發':'改回',{name:'🎬 '+x.title,at:day}); x.status=st; S.sheet=null; render(true);
+    ghTx('posts',d=>{ if(d.shorts&&d.shorts[x.id]) d.shorts[x.id].status=st; return d },'短影片 '+x.title).catch(fail); return }
+  if(a==='shortDel'){ logAct('刪片',{name:x.title,at:day}); S.shorts=S.shorts.filter(v=>v.id!==x.id); S.sheet=null; render(true);
+    ghTx('posts',d=>{ if(d.shorts) delete d.shorts[x.id]; return d },'拿掉短影片 '+x.title).catch(fail) }
+}
 function backToPool(q){ if(!q) return; S.posts=S.posts.filter(x=>x.id!==q.id); render(true);
   logAct('回',{name:nm(q),from:q.at});
   ghTx('posts',x=>{delete x.posts[q.id];return x},'放回素材池 '+nm(q)).then(()=>toast('放回素材池了')).catch(fail) }
@@ -571,7 +622,8 @@ async function placeAt(t,moveId,newData){
     const p=snap(m.c.id); return {id:m.c.id,at:m.at,log:i===0?addLog(p||{},p&&p.at==null?'放':'移'):null} });
   plan.forEach(x=>{ if(x.neu) S.posts.push({id:x.id,...x.neu}); else { const p=snap(x.id); if(p){p.at=x.at; if(x.log)p.log=x.log} } }); render(true);
   try{ await ghTx('posts',d=>{ plan.forEach(x=>{ if(x.neu) d.posts[x.id]=x.neu; else if(d.posts[x.id]){ d.posts[x.id].at=x.at; if(x.log) d.posts[x.id].log=x.log; d.posts[x.id].updatedAt=Date.now(); d.posts[x.id].by=S.me } }); return d },(main.c.d?'排 ':'移 ')+(main.c.d?(main.c.d.name||''):nm(mp))); }catch(e){ fail(e); return }
-  toast(pushed?'放好了，後面 '+pushed+' 則往後推':'放好了 '+rel(t)+' '+hm(t));
+  const sd=S.shorts.find(x=>x.day===sod(t));
+  toast(sd?'⚠️ 放好了，不過 '+md(t)+' 已經有短影片「'+sd.title+'」，同一天會發兩篇':(pushed?'放好了，後面 '+pushed+' 則往後推':'放好了 '+rel(t)+' '+hm(t)),sd?6000:2400);
 }
 
 /* ---------- 拖曳 ---------- */
@@ -658,6 +710,9 @@ document.addEventListener('click',e=>{
     const same=S.pick&&((id&&S.pick.id===id)||(key&&S.pick.key===key)); S.pick=same?null:{id,key};
     render(true); return }
   if(a==='cell'){ if(S.pick) usePick(+b.dataset.t); return }
+  if(a==='shortNew'){ if(e.target.closest('.schip')) return; S.sheet='short:'+b.dataset.day; render(true); return }
+  if(a==='shortOpen'){ S.sheet='short:'+b.dataset.id; render(true); return }
+  if(a==='shortSave'||a==='shortDel'||a==='shortDone'){ shortAction(a); return }
   if(a==='idea'){ S.sheet='idea'; render(true); setTimeout(()=>{const i=$('#ideaIn'); if(i) i.focus()},0); return }
   const p=S.posts.find(x=>x.id===S.sheet); if(!p) return;
   if(a==='posted'){logAct('發',{name:nm(p),at:p.at});patch(p.id,{status:'posted',postedAt:Date.now(),postedBy:S.me,log:addLog(p,'發')});saveLink();S.sheet=null;toast('✓ 記下來了');render(true);return}
