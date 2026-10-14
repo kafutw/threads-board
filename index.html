@@ -127,7 +127,14 @@ body.dragging .cell:empty{border-color:var(--muted)}
 @keyframes flash{0%,100%{box-shadow:0 0 0 2.5px var(--warn)}50%{box-shadow:0 0 0 4px var(--warn),0 0 18px var(--warn)}}
 .sync{font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
 .sync.ok{color:var(--ok)}.sync.busy{color:var(--warn)}.sync.bad{color:var(--bad)}
-.cell.has-short{background:var(--short-soft);border:1.5px solid var(--short);cursor:default}
+.cell.has-short{background:color-mix(in srgb,var(--short) 16%,var(--surface));border:1.5px solid var(--short);cursor:default}
+.cell.fill-kafka{background:color-mix(in srgb,var(--kafka) 14%,var(--surface));border-color:var(--kafka)}
+.cell.fill-xz{background:color-mix(in srgb,var(--xz) 14%,var(--surface));border-color:var(--xz)}
+.cell.fill-none{background:var(--soft);border-color:var(--muted)}
+.cell.fill-done{background:var(--soft);border-color:var(--line)}
+.cell[class*="fill-"] .chip.mv:hover{background:color-mix(in srgb,var(--surface) 55%,transparent)}
+.schip .si{background:var(--short)!important}
+.schip .st{color:color-mix(in srgb,var(--short) 75%,var(--ink))!important}
 .schip{display:flex;align-items:center;gap:12px;width:100%;border:0;border-radius:12px;padding:6px 8px;background:transparent;text-align:left;color:var(--ink);cursor:pointer}
 .schip .si{width:38px;height:38px;border-radius:50%;background:var(--short);display:grid;place-items:center;font-size:17px;flex:none}
 .schip .body{flex:1;min-width:0;display:grid;gap:3px;line-height:1.25}
@@ -221,6 +228,14 @@ body.chipdrag .backhint{display:grid}
 .who2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .who2 button{border:2px solid var(--line);background:var(--bg);border-radius:14px;padding:10px;display:flex;gap:8px;align-items:center;justify-content:center;font-weight:700}
 .who2 button[aria-pressed="true"]{border-color:var(--ink)}
+.pal{display:flex;flex-wrap:wrap;gap:8px}
+.palb{display:flex;align-items:center;gap:4px;border:1.5px solid var(--line);background:var(--bg);border-radius:999px;padding:6px 12px 6px 8px;font-weight:700;font-size:13px}
+.palb i{width:14px;height:14px;border-radius:50%;display:inline-block}
+.palb span{margin-left:4px}
+.colrow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.colrow label{display:flex;align-items:center;gap:8px;border:1.5px solid var(--line);border-radius:14px;padding:6px 10px;font-weight:700;font-size:13px;cursor:pointer}
+.colrow input[type=color]{width:30px;height:30px;border:0;padding:0;background:none;border-radius:50%;cursor:pointer;flex:none}
+.colrow input[type=color]::-webkit-color-swatch-wrapper{padding:0}.colrow input[type=color]::-webkit-color-swatch{border:0;border-radius:50%}
 .toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 16px);transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:10px 18px;border-radius:999px;font-size:14px;font-weight:600;max-width:calc(100% - 32px);z-index:20;box-shadow:0 10px 30px rgb(0 0 0/.25)}
 
 /* 異動紀錄（小字精簡） */
@@ -317,6 +332,14 @@ const WHO={kafka:{n:'卡夫卡',a:'卡'},xz:{n:'小臻',a:'臻'},'':{n:'未定',
 const WD='日一二三四五六';
 const TL='<svg class="tlogo" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.964-.065-1.19.408-2.285 1.33-3.082.88-.76 2.119-1.207 3.583-1.291a13.853 13.853 0 0 1 3.02.142c-.126-.742-.375-1.332-.75-1.757-.513-.586-1.308-.883-2.359-.89h-.029c-.844 0-1.992.232-2.721 1.32L7.734 7.847c.98-1.454 2.568-2.256 4.478-2.256h.044c3.194.02 5.097 1.975 5.287 5.388.108.046.216.094.321.142 1.49.7 2.58 1.761 3.154 3.07.797 1.82.871 4.79-1.548 7.158-1.85 1.81-4.094 2.628-7.277 2.65Zm1.003-11.69c-.242 0-.487.007-.739.021-1.836.103-2.98.946-2.916 2.143.067 1.256 1.452 1.839 2.784 1.767 1.224-.065 2.818-.543 3.086-3.71a10.5 10.5 0 0 0-2.215-.221z"/></svg>';
 const DEF={slots:['12:00','20:30'],gapH:3};
+const PALETTES=[
+  {n:'預設',c:{kafka:'#2E7C85',xz:'#C24F7B',short:'#7C5CE0'}},
+  {n:'大地',c:{kafka:'#5E8B4A',xz:'#C46A35',short:'#8A6D3B'}},
+  {n:'莫蘭迪',c:{kafka:'#6F93A0',xz:'#B5838D',short:'#8C82A8'}},
+  {n:'鮮明',c:{kafka:'#0A84FF',xz:'#FF375F',short:'#AF52DE'}},
+  {n:'海洋',c:{kafka:'#1F6FB2',xz:'#E0882F',short:'#16A085'}}];
+const COLOR_KEYS=[['kafka','卡夫卡'],['xz','小臻'],['short','短影片']];
+function applyColors(c){ const r=document.documentElement; COLOR_KEYS.forEach(([k])=>{ if(c&&/^#[0-9a-fA-F]{6}$/.test(c[k]||'')) r.style.setProperty('--'+k,c[k]); else r.style.removeProperty('--'+k) }) }
 const S={db:null,ro:false,loaded:false,posts:[],drive:[],acts:[],actLoaded:false,pendingLog:[],flash:{},shorts:[],synced:0,settings:{...DEF},me:'kafka',uid:null,
   wk:0,filter:'kit',q:'',pick:null,sheet:null,armDel:false,dragging:false,pending:false,sorts:[]};
 const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
@@ -399,7 +422,7 @@ function applyData(name,d){
   if(!d) return;
   if(name==='posts'){ S.posts=Object.entries(d.posts||{}).map(([id,v])=>({id,...v})); S.shorts=Object.entries(d.shorts||{}).map(([id,v])=>({id,...v})); S.loaded=true; S.acts=[...S.pendingLog,...(d.log||[])].slice(0,60); S.actLoaded=true; }
   if(name==='pool'){ S.drive=d.items||[]; S.synced=d.syncedAt||0; }
-  if(name==='settings'){ S.settings={...DEF,...d}; }
+  if(name==='settings'){ S.settings={...DEF,...d}; applyColors(S.settings.colors); }
 }
 const newId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 // 異動紀錄先記在手上，跟著下一次存排程一起存；沒有排程要存的（例如改時段）就單獨存一次
@@ -452,7 +475,7 @@ function actText(x){
     case '片': return `把短影片 ${n} 排到 ${w(x.at)}`;
     case '改片': return `修改 ${w(x.at)} 的短影片 ${n}`;
     case '刪片': return `拿掉 ${w(x.at)} 的短影片 ${n}`;
-    case '設定': return `把發文時段改成 ${esc((x.slots||[]).join('、'))}，間隔 ${esc(x.gapH)} 小時`;
+    case '設定': return `更新了設定（時段 ${esc((x.slots||[]).join('、'))}、配色）`;
     default: return esc(x.a);
   }
 }
@@ -502,7 +525,8 @@ function renderCal(){
       const t=day+m*6e4, ps=byT.get(t)||[];
       const x=shAt.get(t);
       if(x){ h+=`<div class="cell has-short" data-t="${t}"><button class="schip ${x.status==='posted'?'done':''}" data-act="shortOpen" data-id="${esc(x.id)}" title="${esc(x.title)}"><span class="si">🎬</span><span class="body"><span class="t">${esc(x.title)}</span><span class="st">${x.status==='posted'?'已發・':''}短影片・${esc(WHO[x.by||''].n)} ${esc(md(x.t)+' '+hm(x.t))}</span></span></button></div>`; continue }
-      h+=`<div class="cell ${t<now&&!ps.length?'gone':''}" data-t="${t}" data-act="cell">${ps.map(chipHtml).join('')}</div>`;
+      const fill=ps.length?(ps.every(p=>p.status==='posted')?'fill-done':'fill-'+(ps[0].who||'none')):'';
+      h+=`<div class="cell ${t<now&&!ps.length?'gone':''} ${fill}" data-t="${t}" data-act="cell">${ps.map(chipHtml).join('')}</div>`;
     }
     h+='</div>';
   }
@@ -529,6 +553,9 @@ function renderSheet(){
       <div class="ttl">發文時段</div>
       <div class="setgrid"><label for="setSlots">每天幾點（逗號隔開）<input id="setSlots" value="${esc((S.settings.slots||[]).join(', '))}" placeholder="12:00, 20:30"></label>
       <label for="setGap">兩則至少隔幾小時（太近會亮 !）<input id="setGap" type="number" min="0" max="24" step="0.5" value="${esc(S.settings.gapH)}"></label></div>
+      <div class="ttl" style="font-size:16px;margin-top:4px">配色</div>
+      <div class="pal">${PALETTES.map((x,i)=>`<button type="button" class="palb" data-act="palette" data-k="${i}">${COLOR_KEYS.map(([k])=>`<i style="background:${x.c[k]}"></i>`).join('')}<span>${x.n}</span></button>`).join('')}</div>
+      <div class="colrow">${COLOR_KEYS.map(([k,n])=>`<label for="col-${k}"><input type="color" id="col-${k}" data-col="${k}" value="${esc((S.settings.colors&&S.settings.colors[k])||PALETTES[0].c[k])}"><span>${n}</span></label>`).join('')}</div>
       <button class="mainbtn" data-act="saveSettings">儲存</button>
       <div style="display:flex;gap:10px;align-items:center;font-size:13px;color:var(--muted);font-weight:600;border-top:1px solid var(--line);padding-top:12px">這台裝置記成 <b style="color:var(--ink)">${WHO[S.me].n}</b><button class="bb" style="margin-left:auto;padding:8px 12px" data-act="logout">換人／重設通行碼</button></div></div></div>`; return;
   }
@@ -699,8 +726,9 @@ document.addEventListener('click',e=>{
   if(a!=='del') S.armDel=false;
   if(a==='actmore'){S.actAll=!S.actAll;renderActivity();return}
   if(a==='golog'){ $('#activity').scrollIntoView({behavior:'smooth',block:'start'}); return }
+  if(a==='palette'){ const x=PALETTES[+k]; COLOR_KEYS.forEach(([c])=>{ const el=$('#col-'+c); if(el) el.value=x.c[c] }); applyColors(x.c); return }
   if(a==='unpick'){S.pick=null;render(true);return}
-  if(a==='close'){ if(e.target===b){saveLink();S.sheet=null;render(true)} return }
+  if(a==='close'){ if(e.target===b){ if(S.sheet==='settings') applyColors(S.settings.colors);saveLink();S.sheet=null;render(true)} return }
   if(a==='wk'){S.wk=k==='0'?0:S.wk+(+k);render(true);return}
   if(a==='settings'){S.sheet='settings';render(true);return}
   if(a==='saveSettings'){saveSettings();return}
@@ -720,7 +748,7 @@ document.addEventListener('click',e=>{
   if(a==='undo'){logAct('改回',{name:nm(p),at:p.at});patch(p.id,{status:'planned',postedAt:null,postedBy:null,log:addLog(p,'改回')});return}
   if(a==='del'){ S.sheet=null; backToPool(p); return }
 });
-document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ if(S.pick){S.pick=null;render(true)} else if(S.sheet){saveLink();S.sheet=null;render(true)} }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ if(S.pick){S.pick=null;render(true)} else if(S.sheet){ if(S.sheet==='settings') applyColors(S.settings.colors); saveLink();S.sheet=null;render(true)} }
   if(e.key==='Enter'&&e.target.id==='ideaIn') $('[data-act="ideaOk"]').click(); });
 function usePick(t){ const pk=S.pick; S.pick=null; if(pk.key){const d=artData(pk.key); if(d) placeAt(t,null,d)} else if(pk.id) placeAt(t,pk.id); render(true) }
 function saveLink(){ const el=$('#linkIn'); if(!el||!S.sheet) return; const p=S.posts.find(x=>x.id===S.sheet); const v=el.value.trim();
@@ -730,9 +758,11 @@ async function saveSettings(){
   const slots=$('#setSlots').value.split(/[,，、\s]+/).filter(Boolean).map(s=>{const m=/^(\d{1,2})[:：](\d{2})$/.exec(s);return m&&+m[1]<24&&+m[2]<60?pad(+m[1])+':'+m[2]:null});
   if(!slots.length||slots.includes(null)) return toast('時段寫成 12:00, 20:30');
   const gapH=Math.max(0,Math.min(24,+$('#setGap').value||0));
-  try{await ghTx('settings',()=>({slots:[...new Set(slots)].sort(),gapH,updatedAt:Date.now(),by:S.me}),'改發文時段');logAct('設定',{slots:[...new Set(slots)].sort(),gapH});S.sheet=null;toast('存好了');render(true)}catch(e){fail(e)}
+  const colors={}; COLOR_KEYS.forEach(([k])=>{ const el=$('#col-'+k); if(el) colors[k]=el.value });
+  try{await ghTx('settings',()=>({slots:[...new Set(slots)].sort(),gapH,colors,updatedAt:Date.now(),by:S.me}),'改設定');logAct('設定',{slots:[...new Set(slots)].sort(),gapH});S.sheet=null;toast('存好了');render(true)}catch(e){fail(e)}
 }
 document.addEventListener('focusout',()=>setTimeout(()=>{if(S.pending)render()},0));
+document.addEventListener('input',e=>{ const k=e.target.dataset&&e.target.dataset.col; if(!k) return; const c={}; COLOR_KEYS.forEach(([x])=>{ const el=$('#col-'+x); if(el) c[x]=el.value }); applyColors(c) });
 
 /* ---------- 啟動 ---------- */
 render(true); setInterval(()=>render(),60000);
