@@ -440,6 +440,9 @@ function render(force){
   const pb=$('#pickbar'); pb.hidden=!S.pick;
   if(S.pick){ const it=S.pick.key?poolItem(S.pick.key):S.posts.find(x=>x.id===S.pick.id); $('#pickname').textContent='「'+((it&&(it.name||short(it.title)))||'')+'」→ 點一格時段放進去'; }
   renderBar(); renderCal(); renderPool(); renderSheet(); renderActivity();
+  // 嵌在工作台裡（窄畫面素材池會排到週曆上面）：第一次讀到資料就捲到週曆，今天那一列在最上面
+  if(S.loaded&&!S.calJumped&&window.self!==window.top){ S.calJumped=true;
+    requestAnimationFrame(()=>window.scrollTo(0,$('#cal').getBoundingClientRect().top+window.scrollY)); }
   $('#note').innerHTML=S.ro?'<div class="note">👀 這組通行碼只能看、不能改。請卡夫卡重新產生一組有「讀寫」權限的。</div>'
     :(S.netErr?'<div class="note">'+esc(S.netErr)+'</div>':'');
 }
