@@ -823,12 +823,14 @@ setInterval(syncBadge,20000);
 let PAGE_LM=null;
 async function checkNewPage(){
   try{
-    const r=await fetch(location.pathname+'?v='+Date.now(),{method:'HEAD',cache:'no-store'}); const lm=r.headers.get('last-modified'); if(!lm) return;
+    const r=await fetch(location.pathname+'?v='+Date.now(),{method:'HEAD',cache:'no-store'}); if(!r.ok) return; const lm=r.headers.get('last-modified'); if(!lm) return;   // GitHub 出錯時不換，不然會把自己換成錯誤頁（獨角獸）
     if(!PAGE_LM){ PAGE_LM=lm; return }
     if(lm!==PAGE_LM&&!S.dragging&&!S.sheet&&!(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))&&!G.busy&&!S.pendingLog.length) location.reload();
   }catch(_){}
 }
 checkNewPage(); setInterval(checkNewPage,60000);
+// 嵌在工作台裡時每 10 秒回報一次「還活著」，工作台 40 秒沒收到就知道這格被換成錯誤頁了，會自己重新載入
+if(window.parent!==window){ const alive=()=>{ try{ window.parent.postMessage({kfkAlive:1},'*') }catch(_){} }; alive(); setInterval(alive,10000) }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') checkNewPage() });
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') refresh(false) });
 })();
